@@ -67,8 +67,11 @@ user-management-service/
     │   │   ├── controller/UserController.java     # REST endpoints + Swagger annotations
     │   │   ├── dto/UserRequest.java               # Validated request body for POST/PUT
     │   │   ├── exception/
+    │   │   │   ├── ApiException.java              # Base class for application errors
+    │   │   │   ├── ErrorCode.java                 # Machine-readable error codes → HTTP status
     │   │   │   ├── ErrorResponse.java             # JSON error body
     │   │   │   ├── GlobalExceptionHandler.java    # @RestControllerAdvice
+    │   │   │   ├── UserAlreadyExistsException.java
     │   │   │   └── UserNotFoundException.java
     │   │   ├── model/
     │   │   │   ├── Gender.java                    # MALE / FEMALE / OTHER
@@ -79,8 +82,17 @@ user-management-service/
     │   │   └── service/UserService.java           # Business logic
     │   └── resources/application.properties
     └── test/java/com/example/usermanagement
-        ├── controller/UserControllerIntegrationTest.java
-        └── repository/InMemoryUserRepositoryTest.java
+        ├── UserManagementApplicationTests.java
+        ├── controller/UserControllerTest.java             # @WebMvcTest, service mocked
+        ├── controller/UserControllerIntegrationTest.java  # @SpringBootTest, full stack
+        ├── dto/UserRequestValidationTest.java
+        ├── exception/ErrorResponseTest.java
+        ├── exception/ExceptionTypesTest.java
+        ├── exception/GlobalExceptionHandlerTest.java
+        ├── model/GenderTest.java
+        ├── model/UserTest.java
+        ├── repository/InMemoryUserRepositoryTest.java
+        └── service/UserServiceTest.java
 ```
 
 ## Architecture
@@ -99,7 +111,7 @@ The application follows a classic layered design. Each layer depends only on the
                               ▼
  ┌──────────────────────────────────────────────────────────┐
  │  Service layer         UserService                       │
- │  - business rules, throws UserNotFoundException          │
+ │  - business rules, UserNotFound / UserAlreadyExists      │
  └──────────────────────────────────────────────────────────┘
                               │
                               ▼
@@ -112,9 +124,11 @@ The application follows a classic layered design. Each layer depends only on the
  └──────────────────────────────────────────────────────────┘
 
  Cross-cutting: GlobalExceptionHandler (@RestControllerAdvice)
-   UserNotFoundException            → 404
-   MethodArgumentNotValidException  → 400 (with fieldErrors)
+   ApiException (UserNotFound 404, UserAlreadyExists 409)
+   Validation errors (body / path)  → 400 (with fieldErrors)
    Malformed JSON / bad path param  → 400
+   Unknown path 404, wrong method 405, wrong content type 415
+   Anything else                    → 500 (logged, no details leaked)
 ```
 
 Design notes:
@@ -159,10 +173,12 @@ Base URL: `http://localhost:8080/api/users`
 | Method   | Path               | Description        | Request body  | Success           | Errors     |
 |----------|--------------------|--------------------|---------------|-------------------|------------|
 | `GET`    | `/api/users`       | List all users     | –             | `200 OK`          | –          |
-| `GET`    | `/api/users/{id}`  | Get one user       | –             | `200 OK`          | `404`      |
-| `POST`   | `/api/users`       | Add a user         | `UserRequest` | `201 Created` + `Location` header | `400` |
-| `PUT`    | `/api/users/{id}`  | Update a user      | `UserRequest` | `200 OK`          | `400`, `404` |
-| `DELETE` | `/api/users/{id}`  | Delete a user      | –             | `204 No Content`  | `404`      |
+| `GET`    | `/api/users/{id}`  | Get one user       | –             | `200 OK`          | `400`, `404` |
+| `POST`   | `/api/users`       | Add a user         | `UserRequest` | `201 Created` + `Location` header | `400`, `409`, `415` |
+| `PUT`    | `/api/users/{id}`  | Update a user      | `UserRequest` | `200 OK`          | `400`, `404`, `409`, `415` |
+| `DELETE` | `/api/users/{id}`  | Delete a user      | –             | `204 No Content`  | `400`, `404` |
+
+First name + last name must be unique (case-insensitive). Creating a duplicate, or renaming a user to another user's name, returns `409 Conflict`.
 
 `UserRequest` body:
 
@@ -241,16 +257,33 @@ HTTP/1.1 204
 
 ## Error Handling
 
-All errors share one JSON shape, produced by `GlobalExceptionHandler`:
+All errors share one JSON shape, produced by `GlobalExceptionHandler`. Stack traces and exception details are never returned to the client; unexpected errors are logged server-side.
 
 | Field         | Description                                       |
 |---------------|---------------------------------------------------|
 | `timestamp`   | When the error occurred (ISO-8601, UTC)           |
 | `status`      | HTTP status code                                  |
 | `error`       | HTTP reason phrase                                |
+| `code`        | Machine-readable error code (see table below)     |
 | `message`     | Human-readable description                        |
 | `path`        | Request path                                      |
-| `fieldErrors` | Map of field → message (validation errors only)   |
+| `fieldErrors` | Map of field → message (validation errors only; omitted otherwise) |
+
+### Error codes
+
+| `code`                   | Status | When |
+|--------------------------|--------|------|
+| `USER_NOT_FOUND`         | 404    | No user with the given id |
+| `USER_ALREADY_EXISTS`    | 409    | Another user already has this first + last name |
+| `VALIDATION_FAILED`      | 400    | Body fails bean validation, or `{id}` is not positive (`fieldErrors` lists each field) |
+| `MALFORMED_REQUEST`      | 400    | Body missing, not valid JSON, wrong field type, or unknown `gender` value |
+| `INVALID_PARAMETER`      | 400    | Path variable can't be converted, e.g. `/api/users/abc` |
+| `RESOURCE_NOT_FOUND`     | 404    | No endpoint at that path |
+| `METHOD_NOT_ALLOWED`     | 405    | HTTP method not supported; the `Allow` header lists supported methods |
+| `UNSUPPORTED_MEDIA_TYPE` | 415    | `Content-Type` isn't `application/json` |
+| `INTERNAL_ERROR`         | 500    | Any unexpected error (generic message only) |
+
+Application errors extend `ApiException`, which carries an `ErrorCode`. To add a new business error, add a code to `ErrorCode` and throw a subclass of `ApiException`; the handler maps it without further changes.
 
 ### 404 – user not found
 
@@ -263,6 +296,7 @@ curl -s http://localhost:8080/api/users/999
   "timestamp": "2026-11-04T16:00:00.000Z",
   "status": 404,
   "error": "Not Found",
+  "code": "USER_NOT_FOUND",
   "message": "User with id 999 not found",
   "path": "/api/users/999"
 }
@@ -281,6 +315,7 @@ curl -s -X POST http://localhost:8080/api/users \
   "timestamp": "2026-11-04T16:00:00.000Z",
   "status": 400,
   "error": "Bad Request",
+  "code": "VALIDATION_FAILED",
   "message": "Validation failed",
   "path": "/api/users",
   "fieldErrors": {
@@ -291,7 +326,50 @@ curl -s -X POST http://localhost:8080/api/users \
 }
 ```
 
-Malformed JSON, an unknown `gender` value, or a non-numeric `{id}` also return `400` with the same body (without `fieldErrors`).
+A non-positive id (`GET /api/users/0`) returns the same code with `"fieldErrors": {"id": "id must be a positive number"}`.
+
+### 400 – invalid enum value
+
+```bash
+curl -s -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"firstName":"A","lastName":"B","age":5,"gender":"UNKNOWN"}'
+```
+
+```json
+{
+  "status": 400,
+  "code": "MALFORMED_REQUEST",
+  "message": "Invalid value 'UNKNOWN' for field 'gender'; allowed values: [MALE, FEMALE, OTHER]"
+}
+```
+
+### 409 – duplicate user
+
+```bash
+curl -s -X POST http://localhost:8080/api/users \
+  -H "Content-Type: application/json" \
+  -d '{"firstName":"alice","lastName":"smith","age":31,"gender":"FEMALE"}'
+```
+
+```json
+{
+  "status": 409,
+  "error": "Conflict",
+  "code": "USER_ALREADY_EXISTS",
+  "message": "User 'alice smith' already exists"
+}
+```
+
+### 405 / 415 / 500
+
+| Request | Response |
+|---------|----------|
+| `DELETE /api/users` | `405`, `Allow: GET,POST`, message `HTTP method DELETE is not supported for this endpoint` |
+| `POST /api/users` with `Content-Type: text/plain` | `415`, message `Content type 'text/plain' is not supported; use application/json` |
+| Unexpected server error | `500`, message `An unexpected error occurred` |
+
+(Shortened examples omit `timestamp`, `error` and `path`; real responses always include them.)
 
 ## API Documentation (Swagger / OpenAPI)
 
@@ -309,10 +387,21 @@ The controller uses `@Tag`, `@Operation`, `@ApiResponse` and `@Parameter`, and t
 mvn test
 ```
 
+Running `mvn clean verify` runs 133 tests.
+
 | Test class                        | Type                                  | Covers |
 |-----------------------------------|---------------------------------------|--------|
-| `UserControllerIntegrationTest`   | `@SpringBootTest` + MockMvc           | List, get, add (201 + `Location`), update, delete (204), 404 for get/update/delete, 400 for validation and malformed JSON, `/v3/api-docs` exposure |
-| `InMemoryUserRepositoryTest`      | Plain JUnit                           | Seeding, id generation, defensive copies, delete |
+| `UserManagementApplicationTests`  | `@SpringBootTest`                     | Context loads, in-memory repository is wired, OpenAPI info, Swagger UI redirect |
+| `UserTest`                        | Plain JUnit                           | Lombok constructors, getters/setters, `equals`/`hashCode`, `toString` |
+| `GenderTest`                      | Plain JUnit (parameterized)           | Enum values and `valueOf` |
+| `UserRequestValidationTest`       | Bean Validation                       | Every constraint and its message, boundary values (age 0/150, 50-char names) |
+| `InMemoryUserRepositoryTest`      | Plain JUnit                           | Seeding, sorting, id generation, no id reuse, defensive copies, case-insensitive name lookup, delete, concurrent saves |
+| `UserServiceTest`                 | Mockito                               | Every service method, 404 and 409 paths, no save on failure |
+| `ExceptionTypesTest`              | Plain JUnit                           | Exception messages, ids and error codes, `ErrorCode` → status mapping |
+| `ErrorResponseTest`               | Jackson                               | JSON serialization, `fieldErrors` omitted when null/empty |
+| `GlobalExceptionHandlerTest`      | Plain JUnit                           | Each handler method called directly: status, code, message, `Allow` header, no leaked details |
+| `UserControllerTest`              | `@WebMvcTest` + mocked service        | Every endpoint and error status (400, 404, 405, 409, 415, 500) over HTTP |
+| `UserControllerIntegrationTest`   | `@SpringBootTest` + MockMvc           | Full stack: CRUD, 404s, 400s, 409 duplicates, full create→update→delete lifecycle, `/v3/api-docs` |
 
 The integration test uses `@DirtiesContext(AFTER_EACH_TEST_METHOD)` so every test starts from the three seeded users.
 

@@ -1,6 +1,7 @@
 package com.example.usermanagement.service;
 
 import com.example.usermanagement.dto.UserRequest;
+import com.example.usermanagement.exception.UserAlreadyExistsException;
 import com.example.usermanagement.exception.UserNotFoundException;
 import com.example.usermanagement.model.User;
 import com.example.usermanagement.repository.UserRepository;
@@ -24,6 +25,7 @@ public class UserService {
     }
 
     public User createUser(UserRequest request) {
+        ensureNameIsAvailable(request, null);
         User user = new User(null, request.getFirstName(), request.getLastName(), request.getAge(), request.getGender());
         return userRepository.save(user);
     }
@@ -32,6 +34,7 @@ public class UserService {
         if (!userRepository.existsById(id)) {
             throw new UserNotFoundException(id);
         }
+        ensureNameIsAvailable(request, id);
         User user = new User(id, request.getFirstName(), request.getLastName(), request.getAge(), request.getGender());
         return userRepository.save(user);
     }
@@ -41,5 +44,13 @@ public class UserService {
             throw new UserNotFoundException(id);
         }
         userRepository.deleteById(id);
+    }
+
+    private void ensureNameIsAvailable(UserRequest request, Long currentUserId) {
+        userRepository.findByFirstNameIgnoreCaseAndLastNameIgnoreCase(request.getFirstName(), request.getLastName())
+                .filter(existing -> !existing.getId().equals(currentUserId))
+                .ifPresent(existing -> {
+                    throw new UserAlreadyExistsException(request.getFirstName(), request.getLastName());
+                });
     }
 }

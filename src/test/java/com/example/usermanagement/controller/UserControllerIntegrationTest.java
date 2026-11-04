@@ -51,6 +51,7 @@ class UserControllerIntegrationTest {
         mockMvc.perform(get("/api/users/999"))
                 .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$.status").value(404))
+                .andExpect(jsonPath("$.code").value("USER_NOT_FOUND"))
                 .andExpect(jsonPath("$.message").value("User with id 999 not found"));
     }
 
@@ -112,6 +113,46 @@ class UserControllerIntegrationTest {
     @Test
     void deleteMissingUserReturns404() throws Exception {
         mockMvc.perform(delete("/api/users/999")).andExpect(status().isNotFound());
+    }
+
+    @Test
+    void addDuplicateUserReturns409() throws Exception {
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"firstName":"alice","lastName":"SMITH","age":50,"gender":"FEMALE"}
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("USER_ALREADY_EXISTS"));
+
+        mockMvc.perform(get("/api/users")).andExpect(jsonPath("$", hasSize(3)));
+    }
+
+    @Test
+    void updateToAnotherUsersNameReturns409() throws Exception {
+        mockMvc.perform(put("/api/users/1").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"firstName":"Bob","lastName":"Johnson","age":30,"gender":"MALE"}
+                                """))
+                .andExpect(status().isConflict())
+                .andExpect(jsonPath("$.code").value("USER_ALREADY_EXISTS"));
+
+        mockMvc.perform(get("/api/users/1")).andExpect(jsonPath("$.firstName").value("Alice"));
+    }
+
+    @Test
+    void fullCrudLifecycle() throws Exception {
+        mockMvc.perform(post("/api/users").contentType(MediaType.APPLICATION_JSON).content(VALID_USER))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.id").value(4));
+        mockMvc.perform(put("/api/users/4").contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {"firstName":"Diana","lastName":"Prince","age":29,"gender":"FEMALE"}
+                                """))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.age").value(29));
+        mockMvc.perform(get("/api/users/4")).andExpect(jsonPath("$.age").value(29));
+        mockMvc.perform(delete("/api/users/4")).andExpect(status().isNoContent());
+        mockMvc.perform(delete("/api/users/4")).andExpect(status().isNotFound());
     }
 
     @Test

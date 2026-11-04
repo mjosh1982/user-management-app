@@ -37,6 +37,14 @@ public class InMemoryUserRepository implements UserRepository {
     }
 
     @Override
+    public Optional<User> findByFirstNameIgnoreCaseAndLastNameIgnoreCase(String firstName, String lastName) {
+        return store.values().stream()
+                .filter(u -> u.getFirstName().equalsIgnoreCase(firstName) && u.getLastName().equalsIgnoreCase(lastName))
+                .findFirst()
+                .map(InMemoryUserRepository::copy);
+    }
+
+    @Override
     public User save(User user) {
         User toStore = copy(user);
         if (toStore.getId() == null) {
