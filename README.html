@@ -1,0 +1,631 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>User Management Service – README</title>
+<style>
+:root{--fg:#1f2328;--muted:#59636e;--bg:#fff;--soft:#f6f8fa;--border:#d1d9e0;--accent:#0969da;--brand:#6db33f}
+*{box-sizing:border-box}
+body{margin:0;font:16px/1.6 -apple-system,BlinkMacSystemFont,"Segoe UI",Helvetica,Arial,sans-serif;color:var(--fg);background:var(--soft)}
+header{background:linear-gradient(135deg,#2d4a22,#6db33f);color:#fff;padding:2.5rem 1rem}
+header .inner{max-width:960px;margin:0 auto}
+header h1{margin:0;font-size:2.2rem;border:0;color:#fff}
+header p{margin:.5rem 0 0;opacity:.9}
+main{max-width:960px;margin:-1.5rem auto 3rem;background:var(--bg);border:1px solid var(--border);border-radius:10px;padding:2rem 2.5rem;box-shadow:0 4px 16px rgba(0,0,0,.06)}
+h1,h2,h3{line-height:1.25;margin-top:2rem}
+h2{border-bottom:1px solid var(--border);padding-bottom:.3rem;color:#2d4a22}
+h3{color:#24292f}
+a{color:var(--accent);text-decoration:none}a:hover{text-decoration:underline}
+code{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;font-size:.88em;background:#eff1f3;padding:.15em .4em;border-radius:5px}
+pre{background:var(--soft);border:1px solid var(--border);border-radius:8px;padding:1rem;overflow:auto;line-height:1.45}
+pre code{background:none;padding:0;font-size:.85em}
+.highlight{background:var(--soft)!important;border-radius:8px}
+table{border-collapse:collapse;width:100%;margin:1rem 0;display:block;overflow-x:auto}
+th,td{border:1px solid var(--border);padding:.5rem .8rem;text-align:left;vertical-align:top}
+th{background:var(--soft)}
+tr:nth-child(even) td{background:#fbfcfd}
+hr{border:0;border-top:1px solid var(--border);margin:2rem 0}
+blockquote{margin:0;padding:0 1rem;color:var(--muted);border-left:4px solid var(--border)}
+@media (max-width:700px){main{padding:1.2rem}}
+
+pre { line-height: 125%; }
+td.linenos .normal { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+span.linenos { color: inherit; background-color: transparent; padding-left: 5px; padding-right: 5px; }
+td.linenos .special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+span.linenos.special { color: #000000; background-color: #ffffc0; padding-left: 5px; padding-right: 5px; }
+.highlight .hll { background-color: #ffffcc }
+.highlight { background: #f8f8f8; }
+.highlight .c { color: #3D7B7B; font-style: italic } /* Comment */
+.highlight .err { border: 1px solid #FF0000 } /* Error */
+.highlight .k { color: #008000; font-weight: bold } /* Keyword */
+.highlight .o { color: #666666 } /* Operator */
+.highlight .ch { color: #3D7B7B; font-style: italic } /* Comment.Hashbang */
+.highlight .cm { color: #3D7B7B; font-style: italic } /* Comment.Multiline */
+.highlight .cp { color: #9C6500 } /* Comment.Preproc */
+.highlight .cpf { color: #3D7B7B; font-style: italic } /* Comment.PreprocFile */
+.highlight .c1 { color: #3D7B7B; font-style: italic } /* Comment.Single */
+.highlight .cs { color: #3D7B7B; font-style: italic } /* Comment.Special */
+.highlight .gd { color: #A00000 } /* Generic.Deleted */
+.highlight .ge { font-style: italic } /* Generic.Emph */
+.highlight .gr { color: #E40000 } /* Generic.Error */
+.highlight .gh { color: #000080; font-weight: bold } /* Generic.Heading */
+.highlight .gi { color: #008400 } /* Generic.Inserted */
+.highlight .go { color: #717171 } /* Generic.Output */
+.highlight .gp { color: #000080; font-weight: bold } /* Generic.Prompt */
+.highlight .gs { font-weight: bold } /* Generic.Strong */
+.highlight .gu { color: #800080; font-weight: bold } /* Generic.Subheading */
+.highlight .gt { color: #0044DD } /* Generic.Traceback */
+.highlight .kc { color: #008000; font-weight: bold } /* Keyword.Constant */
+.highlight .kd { color: #008000; font-weight: bold } /* Keyword.Declaration */
+.highlight .kn { color: #008000; font-weight: bold } /* Keyword.Namespace */
+.highlight .kp { color: #008000 } /* Keyword.Pseudo */
+.highlight .kr { color: #008000; font-weight: bold } /* Keyword.Reserved */
+.highlight .kt { color: #B00040 } /* Keyword.Type */
+.highlight .m { color: #666666 } /* Literal.Number */
+.highlight .s { color: #BA2121 } /* Literal.String */
+.highlight .na { color: #687822 } /* Name.Attribute */
+.highlight .nb { color: #008000 } /* Name.Builtin */
+.highlight .nc { color: #0000FF; font-weight: bold } /* Name.Class */
+.highlight .no { color: #880000 } /* Name.Constant */
+.highlight .nd { color: #AA22FF } /* Name.Decorator */
+.highlight .ni { color: #717171; font-weight: bold } /* Name.Entity */
+.highlight .ne { color: #CB3F38; font-weight: bold } /* Name.Exception */
+.highlight .nf { color: #0000FF } /* Name.Function */
+.highlight .nl { color: #767600 } /* Name.Label */
+.highlight .nn { color: #0000FF; font-weight: bold } /* Name.Namespace */
+.highlight .nt { color: #008000; font-weight: bold } /* Name.Tag */
+.highlight .nv { color: #19177C } /* Name.Variable */
+.highlight .ow { color: #AA22FF; font-weight: bold } /* Operator.Word */
+.highlight .w { color: #bbbbbb } /* Text.Whitespace */
+.highlight .mb { color: #666666 } /* Literal.Number.Bin */
+.highlight .mf { color: #666666 } /* Literal.Number.Float */
+.highlight .mh { color: #666666 } /* Literal.Number.Hex */
+.highlight .mi { color: #666666 } /* Literal.Number.Integer */
+.highlight .mo { color: #666666 } /* Literal.Number.Oct */
+.highlight .sa { color: #BA2121 } /* Literal.String.Affix */
+.highlight .sb { color: #BA2121 } /* Literal.String.Backtick */
+.highlight .sc { color: #BA2121 } /* Literal.String.Char */
+.highlight .dl { color: #BA2121 } /* Literal.String.Delimiter */
+.highlight .sd { color: #BA2121; font-style: italic } /* Literal.String.Doc */
+.highlight .s2 { color: #BA2121 } /* Literal.String.Double */
+.highlight .se { color: #AA5D1F; font-weight: bold } /* Literal.String.Escape */
+.highlight .sh { color: #BA2121 } /* Literal.String.Heredoc */
+.highlight .si { color: #A45A77; font-weight: bold } /* Literal.String.Interpol */
+.highlight .sx { color: #008000 } /* Literal.String.Other */
+.highlight .sr { color: #A45A77 } /* Literal.String.Regex */
+.highlight .s1 { color: #BA2121 } /* Literal.String.Single */
+.highlight .ss { color: #19177C } /* Literal.String.Symbol */
+.highlight .bp { color: #008000 } /* Name.Builtin.Pseudo */
+.highlight .fm { color: #0000FF } /* Name.Function.Magic */
+.highlight .vc { color: #19177C } /* Name.Variable.Class */
+.highlight .vg { color: #19177C } /* Name.Variable.Global */
+.highlight .vi { color: #19177C } /* Name.Variable.Instance */
+.highlight .vm { color: #19177C } /* Name.Variable.Magic */
+.highlight .il { color: #666666 } /* Literal.Number.Integer.Long */</style>
+</head>
+<body>
+<header><div class="inner"><h1>User Management Service</h1>
+<p>Spring Boot 3 · Java 21 · In-memory REST API with Swagger docs</p></div></header>
+<main>
+<p>A small Spring Boot 3 REST API for managing users. Users are kept in memory (a <code>ConcurrentHashMap</code>), behind a repository interface so the storage can later be replaced with MySQL via Spring Data JPA without touching the controller or service layers.</p>
+<hr />
+<h2 id="table-of-contents">Table of Contents</h2>
+<ol>
+<li><a href="#overview">Overview</a></li>
+<li><a href="#tech-stack">Tech Stack</a></li>
+<li><a href="#project-structure">Project Structure</a></li>
+<li><a href="#architecture">Architecture</a></li>
+<li><a href="#build-and-run">Build and Run</a></li>
+<li><a href="#api-reference">API Reference</a></li>
+<li><a href="#error-handling">Error Handling</a></li>
+<li><a href="#api-documentation-swagger--openapi">API Documentation (Swagger / OpenAPI)</a></li>
+<li><a href="#testing">Testing</a></li>
+<li><a href="#extending-to-mysql">Extending to MySQL</a></li>
+</ol>
+<hr />
+<h2 id="overview">Overview</h2>
+<p>The service exposes CRUD operations on a <code>User</code> resource under <code>/api/users</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Type</th>
+<th>Notes</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>id</code></td>
+<td><code>Long</code></td>
+<td>Assigned by the server</td>
+</tr>
+<tr>
+<td><code>firstName</code></td>
+<td><code>String</code></td>
+<td>Required, max 50 characters</td>
+</tr>
+<tr>
+<td><code>lastName</code></td>
+<td><code>String</code></td>
+<td>Required, max 50 characters</td>
+</tr>
+<tr>
+<td><code>age</code></td>
+<td><code>int</code></td>
+<td>0 – 150</td>
+</tr>
+<tr>
+<td><code>gender</code></td>
+<td><code>Gender</code> enum (<code>MALE</code>, <code>FEMALE</code>, <code>OTHER</code>)</td>
+<td>Required</td>
+</tr>
+</tbody>
+</table>
+<p>On startup the store is seeded with three sample users:</p>
+<table>
+<thead>
+<tr>
+<th>id</th>
+<th>firstName</th>
+<th>lastName</th>
+<th>age</th>
+<th>gender</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>1</td>
+<td>Alice</td>
+<td>Smith</td>
+<td>30</td>
+<td>FEMALE</td>
+</tr>
+<tr>
+<td>2</td>
+<td>Bob</td>
+<td>Johnson</td>
+<td>42</td>
+<td>MALE</td>
+</tr>
+<tr>
+<td>3</td>
+<td>Charlie</td>
+<td>Brown</td>
+<td>25</td>
+<td>OTHER</td>
+</tr>
+</tbody>
+</table>
+<p>Data lives only in memory, so it resets every time the application restarts.</p>
+<h2 id="tech-stack">Tech Stack</h2>
+<table>
+<thead>
+<tr>
+<th>Component</th>
+<th>Version / Library</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Language</td>
+<td>Java 21</td>
+</tr>
+<tr>
+<td>Framework</td>
+<td>Spring Boot 3.5.x (<code>spring-boot-starter-web</code>)</td>
+</tr>
+<tr>
+<td>Validation</td>
+<td>Jakarta Bean Validation (<code>spring-boot-starter-validation</code>)</td>
+</tr>
+<tr>
+<td>Boilerplate</td>
+<td>Lombok</td>
+</tr>
+<tr>
+<td>API docs</td>
+<td>springdoc-openapi 2.8.x (<code>springdoc-openapi-starter-webmvc-ui</code>)</td>
+</tr>
+<tr>
+<td>Build</td>
+<td>Maven 3.6.3+</td>
+</tr>
+<tr>
+<td>Testing</td>
+<td>JUnit 5, Spring Boot Test, MockMvc, AssertJ</td>
+</tr>
+</tbody>
+</table>
+<h2 id="project-structure">Project Structure</h2>
+<div class="highlight"><pre><span></span><code>user-management-service/
+├── pom.xml
+├── README.md
+├── README.html
+└── src
+    ├── main
+    │   ├── java/com/example/usermanagement
+    │   │   ├── UserManagementApplication.java     # Spring Boot entry point + OpenAPI info
+    │   │   ├── controller/UserController.java     # REST endpoints + Swagger annotations
+    │   │   ├── dto/UserRequest.java               # Validated request body for POST/PUT
+    │   │   ├── exception/
+    │   │   │   ├── ErrorResponse.java             # JSON error body
+    │   │   │   ├── GlobalExceptionHandler.java    # @RestControllerAdvice
+    │   │   │   └── UserNotFoundException.java
+    │   │   ├── model/
+    │   │   │   ├── Gender.java                    # MALE / FEMALE / OTHER
+    │   │   │   └── User.java                      # Lombok entity
+    │   │   ├── repository/
+    │   │   │   ├── UserRepository.java            # Storage abstraction (interface)
+    │   │   │   └── InMemoryUserRepository.java    # ConcurrentHashMap + AtomicLong
+    │   │   └── service/UserService.java           # Business logic
+    │   └── resources/application.properties
+    └── test/java/com/example/usermanagement
+        ├── controller/UserControllerIntegrationTest.java
+        └── repository/InMemoryUserRepositoryTest.java
+</code></pre></div>
+
+<h2 id="architecture">Architecture</h2>
+<p>The application follows a classic layered design. Each layer depends only on the layer below it, and the service depends on the <code>UserRepository</code> <strong>interface</strong>, not on a concrete implementation.</p>
+<div class="highlight"><pre><span></span><code>            HTTP client (curl / Swagger UI / frontend)
+                              │
+                              ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │  Controller layer      UserController  (/api/users)      │
+ │  - request mapping, @Valid, HTTP status codes            │
+ └──────────────────────────────────────────────────────────┘
+                              │  UserRequest / User
+                              ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │  Service layer         UserService                       │
+ │  - business rules, throws UserNotFoundException          │
+ └──────────────────────────────────────────────────────────┘
+                              │
+                              ▼
+ ┌──────────────────────────────────────────────────────────┐
+ │  Repository layer      «interface» UserRepository        │
+ │                                 ▲                        │
+ │                                 │ implements             │
+ │                    InMemoryUserRepository                │
+ │       ConcurrentHashMap&lt;Long, User&gt; + AtomicLong ids     │
+ └──────────────────────────────────────────────────────────┘
+
+ Cross-cutting: GlobalExceptionHandler (@RestControllerAdvice)
+   UserNotFoundException            → 404
+   MethodArgumentNotValidException  → 400 (with fieldErrors)
+   Malformed JSON / bad path param  → 400
+</code></pre></div>
+
+<p>Design notes:</p>
+<ul>
+<li><strong>Thread safety</strong> – <code>ConcurrentHashMap</code> handles concurrent reads/writes, and <code>AtomicLong</code> generates unique ids without locking.</li>
+<li><strong>Defensive copies</strong> – the in-memory repository stores and returns copies of <code>User</code> objects, so callers can't change stored state by mutating a returned object (this matches how a database-backed repository behaves).</li>
+<li><strong>Request DTO</strong> – clients send a <code>UserRequest</code> (no <code>id</code>); the server owns id assignment. Validation rules live on the DTO, so the <code>User</code> entity stays a plain data class.</li>
+</ul>
+<h2 id="build-and-run">Build and Run</h2>
+<h3 id="prerequisites">Prerequisites</h3>
+<ul>
+<li>JDK 21 (<code>java -version</code> should report 21)</li>
+<li>Maven 3.6.3 or newer (<code>mvn -version</code>)</li>
+</ul>
+<h3 id="build-and-test">Build and test</h3>
+<div class="highlight"><pre><span></span><code><span class="nb">cd</span> user-management-service
+mvn clean verify
+</code></pre></div>
+
+<h3 id="run">Run</h3>
+<div class="highlight"><pre><span></span><code>mvn spring-boot:run
+</code></pre></div>
+
+<p>Or build the jar and run it:</p>
+<div class="highlight"><pre><span></span><code>mvn clean package
+java -jar target/user-management-service-0.0.1-SNAPSHOT.jar
+</code></pre></div>
+
+<p>The application starts on <strong>http://localhost:8080</strong>. To use a different port, set <code>server.port</code> in <code>src/main/resources/application.properties</code> or pass <code>--server.port=9090</code>.</p>
+<h2 id="api-reference">API Reference</h2>
+<p>Base URL: <code>http://localhost:8080/api/users</code></p>
+<table>
+<thead>
+<tr>
+<th>Method</th>
+<th>Path</th>
+<th>Description</th>
+<th>Request body</th>
+<th>Success</th>
+<th>Errors</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/users</code></td>
+<td>List all users</td>
+<td>–</td>
+<td><code>200 OK</code></td>
+<td>–</td>
+</tr>
+<tr>
+<td><code>GET</code></td>
+<td><code>/api/users/{id}</code></td>
+<td>Get one user</td>
+<td>–</td>
+<td><code>200 OK</code></td>
+<td><code>404</code></td>
+</tr>
+<tr>
+<td><code>POST</code></td>
+<td><code>/api/users</code></td>
+<td>Add a user</td>
+<td><code>UserRequest</code></td>
+<td><code>201 Created</code> + <code>Location</code> header</td>
+<td><code>400</code></td>
+</tr>
+<tr>
+<td><code>PUT</code></td>
+<td><code>/api/users/{id}</code></td>
+<td>Update a user</td>
+<td><code>UserRequest</code></td>
+<td><code>200 OK</code></td>
+<td><code>400</code>, <code>404</code></td>
+</tr>
+<tr>
+<td><code>DELETE</code></td>
+<td><code>/api/users/{id}</code></td>
+<td>Delete a user</td>
+<td>–</td>
+<td><code>204 No Content</code></td>
+<td><code>404</code></td>
+</tr>
+</tbody>
+</table>
+<p><code>UserRequest</code> body:</p>
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;firstName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Diana&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;lastName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Prince&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">28</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FEMALE&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<h3 id="list-all-users">List all users</h3>
+<div class="highlight"><pre><span></span><code>curl -s http://localhost:8080/api/users
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="p">[</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;firstName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;lastName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Smith&quot;</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">30</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FEMALE&quot;</span><span class="w"> </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;firstName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span><span class="w">     </span><span class="nt">&quot;lastName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Johnson&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MALE&quot;</span><span class="w"> </span><span class="p">},</span><span class="w"></span>
+<span class="w">  </span><span class="p">{</span><span class="w"> </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">3</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;firstName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Charlie&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;lastName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Brown&quot;</span><span class="p">,</span><span class="w">   </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">25</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;OTHER&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+<span class="p">]</span><span class="w"></span>
+</code></pre></div>
+
+<h3 id="get-a-user-by-id">Get a user by id</h3>
+<div class="highlight"><pre><span></span><code>curl -s http://localhost:8080/api/users/2
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">2</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;firstName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bob&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;lastName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Johnson&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">42</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;MALE&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<h3 id="add-a-user">Add a user</h3>
+<div class="highlight"><pre><span></span><code>curl -i -X POST http://localhost:8080/api/users <span class="se">\</span>
+  -H <span class="s2">&quot;Content-Type: application/json&quot;</span> <span class="se">\</span>
+  -d <span class="s1">&#39;{&quot;firstName&quot;:&quot;Diana&quot;,&quot;lastName&quot;:&quot;Prince&quot;,&quot;age&quot;:28,&quot;gender&quot;:&quot;FEMALE&quot;}&#39;</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>HTTP/1.1 201
+Location: http://localhost:8080/api/users/4
+Content-Type: application/json
+
+{ &quot;id&quot;: 4, &quot;firstName&quot;: &quot;Diana&quot;, &quot;lastName&quot;: &quot;Prince&quot;, &quot;age&quot;: 28, &quot;gender&quot;: &quot;FEMALE&quot; }
+</code></pre></div>
+
+<h3 id="update-a-user">Update a user</h3>
+<div class="highlight"><pre><span></span><code>curl -s -X PUT http://localhost:8080/api/users/1 <span class="se">\</span>
+  -H <span class="s2">&quot;Content-Type: application/json&quot;</span> <span class="se">\</span>
+  -d <span class="s1">&#39;{&quot;firstName&quot;:&quot;Alice&quot;,&quot;lastName&quot;:&quot;Walker&quot;,&quot;age&quot;:31,&quot;gender&quot;:&quot;FEMALE&quot;}&#39;</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"> </span><span class="nt">&quot;id&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">1</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;firstName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Alice&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;lastName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Walker&quot;</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">31</span><span class="p">,</span><span class="w"> </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;FEMALE&quot;</span><span class="w"> </span><span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<p><code>PUT</code> replaces the whole user, so every field is required.</p>
+<h3 id="delete-a-user">Delete a user</h3>
+<div class="highlight"><pre><span></span><code>curl -i -X DELETE http://localhost:8080/api/users/3
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code>HTTP/1.1 204
+</code></pre></div>
+
+<h2 id="error-handling">Error Handling</h2>
+<p>All errors share one JSON shape, produced by <code>GlobalExceptionHandler</code>:</p>
+<table>
+<thead>
+<tr>
+<th>Field</th>
+<th>Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>timestamp</code></td>
+<td>When the error occurred (ISO-8601, UTC)</td>
+</tr>
+<tr>
+<td><code>status</code></td>
+<td>HTTP status code</td>
+</tr>
+<tr>
+<td><code>error</code></td>
+<td>HTTP reason phrase</td>
+</tr>
+<tr>
+<td><code>message</code></td>
+<td>Human-readable description</td>
+</tr>
+<tr>
+<td><code>path</code></td>
+<td>Request path</td>
+</tr>
+<tr>
+<td><code>fieldErrors</code></td>
+<td>Map of field → message (validation errors only)</td>
+</tr>
+</tbody>
+</table>
+<h3 id="404--user-not-found">404 – user not found</h3>
+<div class="highlight"><pre><span></span><code>curl -s http://localhost:8080/api/users/999
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-11-04T16:00:00.000Z&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">404</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Not Found&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;User with id 999 not found&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/users/999&quot;</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<h3 id="400--validation-failed">400 – validation failed</h3>
+<div class="highlight"><pre><span></span><code>curl -s -X POST http://localhost:8080/api/users <span class="se">\</span>
+  -H <span class="s2">&quot;Content-Type: application/json&quot;</span> <span class="se">\</span>
+  -d <span class="s1">&#39;{&quot;firstName&quot;:&quot;&quot;,&quot;lastName&quot;:&quot;Smith&quot;,&quot;age&quot;:-5}&#39;</span>
+</code></pre></div>
+
+<div class="highlight"><pre><span></span><code><span class="p">{</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;timestamp&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;2026-11-04T16:00:00.000Z&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;status&quot;</span><span class="p">:</span><span class="w"> </span><span class="mi">400</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;error&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Bad Request&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;message&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;Validation failed&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;path&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;/api/users&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">  </span><span class="nt">&quot;fieldErrors&quot;</span><span class="p">:</span><span class="w"> </span><span class="p">{</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;firstName&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;firstName is required&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;age&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;age must be &gt;= 0&quot;</span><span class="p">,</span><span class="w"></span>
+<span class="w">    </span><span class="nt">&quot;gender&quot;</span><span class="p">:</span><span class="w"> </span><span class="s2">&quot;gender is required&quot;</span><span class="w"></span>
+<span class="w">  </span><span class="p">}</span><span class="w"></span>
+<span class="p">}</span><span class="w"></span>
+</code></pre></div>
+
+<p>Malformed JSON, an unknown <code>gender</code> value, or a non-numeric <code>{id}</code> also return <code>400</code> with the same body (without <code>fieldErrors</code>).</p>
+<h2 id="api-documentation-swagger--openapi">API Documentation (Swagger / OpenAPI)</h2>
+<p>With the app running:</p>
+<ul>
+<li><strong>Swagger UI:</strong> http://localhost:8080/swagger-ui.html</li>
+<li><strong>OpenAPI JSON:</strong> http://localhost:8080/v3/api-docs</li>
+<li><strong>OpenAPI YAML:</strong> http://localhost:8080/v3/api-docs.yaml</li>
+</ul>
+<p>The controller uses <code>@Tag</code>, <code>@Operation</code>, <code>@ApiResponse</code> and <code>@Parameter</code>, and the models use <code>@Schema</code>, so Swagger UI shows summaries, every status code, example values and the error schema. You can call each endpoint from Swagger UI with <strong>Try it out</strong>.</p>
+<h2 id="testing">Testing</h2>
+<div class="highlight"><pre><span></span><code>mvn <span class="nb">test</span>
+</code></pre></div>
+
+<table>
+<thead>
+<tr>
+<th>Test class</th>
+<th>Type</th>
+<th>Covers</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><code>UserControllerIntegrationTest</code></td>
+<td><code>@SpringBootTest</code> + MockMvc</td>
+<td>List, get, add (201 + <code>Location</code>), update, delete (204), 404 for get/update/delete, 400 for validation and malformed JSON, <code>/v3/api-docs</code> exposure</td>
+</tr>
+<tr>
+<td><code>InMemoryUserRepositoryTest</code></td>
+<td>Plain JUnit</td>
+<td>Seeding, id generation, defensive copies, delete</td>
+</tr>
+</tbody>
+</table>
+<p>The integration test uses <code>@DirtiesContext(AFTER_EACH_TEST_METHOD)</code> so every test starts from the three seeded users.</p>
+<h2 id="extending-to-mysql">Extending to MySQL</h2>
+<p>Only the repository layer has to change. <code>UserService</code> depends on the <code>UserRepository</code> interface, so controllers, services, DTOs, validation and error handling stay as they are.</p>
+<h3 id="1-add-dependencies-to-pomxml">1. Add dependencies to <code>pom.xml</code></h3>
+<div class="highlight"><pre><span></span><code><span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>org.springframework.boot<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>spring-boot-starter-data-jpa<span class="nt">&lt;/artifactId&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+<span class="nt">&lt;dependency&gt;</span>
+    <span class="nt">&lt;groupId&gt;</span>com.mysql<span class="nt">&lt;/groupId&gt;</span>
+    <span class="nt">&lt;artifactId&gt;</span>mysql-connector-j<span class="nt">&lt;/artifactId&gt;</span>
+    <span class="nt">&lt;scope&gt;</span>runtime<span class="nt">&lt;/scope&gt;</span>
+<span class="nt">&lt;/dependency&gt;</span>
+</code></pre></div>
+
+<h3 id="2-make-user-a-jpa-entity">2. Make <code>User</code> a JPA entity</h3>
+<div class="highlight"><pre><span></span><code><span class="nd">@Entity</span>
+<span class="nd">@Table</span><span class="p">(</span><span class="n">name</span> <span class="o">=</span> <span class="s">&quot;users&quot;</span><span class="p">)</span>
+<span class="nd">@Data</span>
+<span class="nd">@AllArgsConstructor</span>
+<span class="nd">@NoArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">User</span> <span class="p">{</span>
+
+    <span class="nd">@Id</span>
+    <span class="nd">@GeneratedValue</span><span class="p">(</span><span class="n">strategy</span> <span class="o">=</span> <span class="n">GenerationType</span><span class="p">.</span><span class="na">IDENTITY</span><span class="p">)</span>
+    <span class="kd">private</span> <span class="n">Long</span> <span class="n">id</span><span class="p">;</span>
+
+    <span class="nd">@Column</span><span class="p">(</span><span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">firstName</span><span class="p">;</span>
+
+    <span class="nd">@Column</span><span class="p">(</span><span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="mi">50</span><span class="p">)</span>
+    <span class="kd">private</span> <span class="n">String</span> <span class="n">lastName</span><span class="p">;</span>
+
+    <span class="kd">private</span> <span class="kt">int</span> <span class="n">age</span><span class="p">;</span>
+
+    <span class="nd">@Enumerated</span><span class="p">(</span><span class="n">EnumType</span><span class="p">.</span><span class="na">STRING</span><span class="p">)</span>
+    <span class="nd">@Column</span><span class="p">(</span><span class="n">nullable</span> <span class="o">=</span> <span class="kc">false</span><span class="p">,</span> <span class="n">length</span> <span class="o">=</span> <span class="mi">10</span><span class="p">)</span>
+    <span class="kd">private</span> <span class="n">Gender</span> <span class="n">gender</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<h3 id="3-swap-the-repository-implementation">3. Swap the repository implementation</h3>
+<p>Spring Data JPA's <code>JpaRepository</code> already provides <code>findAll</code>, <code>findById</code>, <code>save</code>, <code>existsById</code> and <code>deleteById</code> with the same signatures as <code>UserRepository</code>. The simplest option is to make the interface extend <code>JpaRepository</code> and delete the in-memory class:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">UserRepository</span> <span class="kd">extends</span> <span class="n">JpaRepository</span><span class="o">&lt;</span><span class="n">User</span><span class="p">,</span> <span class="n">Long</span><span class="o">&gt;</span> <span class="p">{</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>Then delete <code>InMemoryUserRepository.java</code> (or keep it for local runs by annotating it with <code>@Profile("inmemory")</code>).</p>
+<p>To keep both implementations side by side, add a separate Spring Data interface plus an adapter instead:</p>
+<div class="highlight"><pre><span></span><code><span class="kd">public</span> <span class="kd">interface</span> <span class="nc">JpaUserRepository</span> <span class="kd">extends</span> <span class="n">JpaRepository</span><span class="o">&lt;</span><span class="n">User</span><span class="p">,</span> <span class="n">Long</span><span class="o">&gt;</span> <span class="p">{</span> <span class="p">}</span>
+
+<span class="nd">@Repository</span>
+<span class="nd">@Profile</span><span class="p">(</span><span class="s">&quot;mysql&quot;</span><span class="p">)</span>
+<span class="nd">@RequiredArgsConstructor</span>
+<span class="kd">public</span> <span class="kd">class</span> <span class="nc">MySqlUserRepository</span> <span class="kd">implements</span> <span class="n">UserRepository</span> <span class="p">{</span>
+    <span class="kd">private</span> <span class="kd">final</span> <span class="n">JpaUserRepository</span> <span class="n">jpa</span><span class="p">;</span>
+
+    <span class="kd">public</span> <span class="n">List</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="nf">findAll</span><span class="p">()</span>                 <span class="p">{</span> <span class="k">return</span> <span class="n">jpa</span><span class="p">.</span><span class="na">findAll</span><span class="p">();</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="n">Optional</span><span class="o">&lt;</span><span class="n">User</span><span class="o">&gt;</span> <span class="nf">findById</span><span class="p">(</span><span class="n">Long</span> <span class="n">id</span><span class="p">)</span>     <span class="p">{</span> <span class="k">return</span> <span class="n">jpa</span><span class="p">.</span><span class="na">findById</span><span class="p">(</span><span class="n">id</span><span class="p">);</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="n">User</span> <span class="nf">save</span><span class="p">(</span><span class="n">User</span> <span class="n">user</span><span class="p">)</span>                 <span class="p">{</span> <span class="k">return</span> <span class="n">jpa</span><span class="p">.</span><span class="na">save</span><span class="p">(</span><span class="n">user</span><span class="p">);</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="kt">boolean</span> <span class="nf">existsById</span><span class="p">(</span><span class="n">Long</span> <span class="n">id</span><span class="p">)</span>          <span class="p">{</span> <span class="k">return</span> <span class="n">jpa</span><span class="p">.</span><span class="na">existsById</span><span class="p">(</span><span class="n">id</span><span class="p">);</span> <span class="p">}</span>
+    <span class="kd">public</span> <span class="kt">void</span> <span class="nf">deleteById</span><span class="p">(</span><span class="n">Long</span> <span class="n">id</span><span class="p">)</span>             <span class="p">{</span> <span class="n">jpa</span><span class="p">.</span><span class="na">deleteById</span><span class="p">(</span><span class="n">id</span><span class="p">);</span> <span class="p">}</span>
+<span class="p">}</span>
+</code></pre></div>
+
+<p>and annotate <code>InMemoryUserRepository</code> with <code>@Profile("!mysql")</code>.</p>
+<h3 id="4-configure-the-datasource-in-applicationproperties">4. Configure the datasource in <code>application.properties</code></h3>
+<div class="highlight"><pre><span></span><code><span class="na">spring.datasource.url</span><span class="o">=</span><span class="s">jdbc:mysql://localhost:3306/user_management?useSSL=false&amp;serverTimezone=UTC</span><span class="w"></span>
+<span class="na">spring.datasource.username</span><span class="o">=</span><span class="s">${DB_USERNAME:root}</span><span class="w"></span>
+<span class="na">spring.datasource.password</span><span class="o">=</span><span class="s">${DB_PASSWORD:}</span><span class="w"></span>
+<span class="na">spring.datasource.driver-class-name</span><span class="o">=</span><span class="s">com.mysql.cj.jdbc.Driver</span><span class="w"></span>
+
+<span class="na">spring.jpa.hibernate.ddl-auto</span><span class="o">=</span><span class="s">update</span><span class="w"></span>
+<span class="na">spring.jpa.show-sql</span><span class="o">=</span><span class="s">true</span><span class="w"></span>
+<span class="na">spring.jpa.open-in-view</span><span class="o">=</span><span class="s">false</span><span class="w"></span>
+</code></pre></div>
+
+<p>Use <code>ddl-auto=update</code> only for local development; in production, manage the schema with Flyway or Liquibase and set <code>ddl-auto=validate</code>.</p>
+<h3 id="5-seed-data-and-tests">5. Seed data and tests</h3>
+<ul>
+<li>Move the sample users into <code>src/main/resources/data.sql</code> (with <code>spring.jpa.defer-datasource-initialization=true</code>) or a <code>CommandLineRunner</code>.</li>
+<li>For tests, use Testcontainers (<code>org.testcontainers:mysql</code>) or H2 so <code>mvn verify</code> doesn't need a local MySQL server.</li>
+</ul>
+<p>A quick way to start MySQL locally:</p>
+<div class="highlight"><pre><span></span><code>docker run -d --name mysql -p <span class="m">3306</span>:3306 <span class="se">\</span>
+  -e <span class="nv">MYSQL_ROOT_PASSWORD</span><span class="o">=</span>secret -e <span class="nv">MYSQL_DATABASE</span><span class="o">=</span>user_management mysql:8.4
+</code></pre></div>
+</main>
+</body>
+</html>
